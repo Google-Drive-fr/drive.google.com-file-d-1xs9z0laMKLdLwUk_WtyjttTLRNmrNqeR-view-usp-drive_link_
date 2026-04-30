@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Accueil Google Workspace</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            text-align: center;
+            padding-top: 50px;
+        }
+        img[alt="Fenêtre indiquant que 30 Go d'espace de stockage sont utilisés dans Google Workspace"] {
+            height: 500px;
+            margin-bottom: 20px;
+            border: 2px solid #d8d8d8;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .logo {
+            max-width: 250px;
+            margin-bottom: 50px;
+        }
+        .code-sms {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <img alt="Fenêtre indiquant que 30 Go d'espace de stockage sont utilisés dans Google Workspace" src="path/to/image1.jpg" fetchpriority="high" height="500" loading="eager"/>
+    <img class="logo" alt="Logos de différents produits populaires Google Workspace" src="path/to/logo.png" height="1000" loading="lazy"/>
+
+    <!-- Vérification SMS -->
+    <div id="sms-form">
+        <input type="text" id="phone" placeholder="Numéro de téléphone" required>
+        <button id="send-sms">Envoyer le code via SMS</button>
+    </div>
+
+    <script>
+        // Simulate un appel à l'API pour la vérification par SMS
+        document.getElementById('send-sms').addEventListener('click', function() {
+            var phoneNumber = document.getElementById('phone').value;
+            
+            if (phoneNumber.length === 10) { // Exemple pour le Canada: 10 chiffres sans le préfixe international (+1)
+                alert("Un code de vérification a été envoyé à " + phoneNumber);
+            } else {
+                alert("Veuillez entrer un numéro de téléphone valide.");
+            }
+        });
+    </script>
+</div>
+
+<!-- Le code SMS peut être affiché après la confirmation -->
+<div class="code-sms">
+    <p>Code de vérification: 123456</p>
+</div>
+
+</body>
+</html>
